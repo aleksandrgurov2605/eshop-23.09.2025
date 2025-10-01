@@ -13,3 +13,4 @@ wheels/
 
 # Rest
 app/models/draft.py
+/.env

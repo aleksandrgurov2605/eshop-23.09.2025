@@ -91,3 +91,5 @@ async def delete_category(category_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"status": "success", "message": "Category marked as inactive"}
+
+

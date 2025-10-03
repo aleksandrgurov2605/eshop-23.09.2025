@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.products import Product as ProductModel
@@ -90,9 +90,6 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_async_db))
                             detail="Category not found or inactive")
 
     return product
-
-
-from sqlalchemy import update
 
 
 @router.put("/{product_id}", response_model=ProductSchema)

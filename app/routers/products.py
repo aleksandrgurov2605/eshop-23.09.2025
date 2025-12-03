@@ -4,7 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.products import Product as ProductModel
 from app.models.categories import Category as CategoryModel
+from app.models.reviews import Review as ReviewModel
 from app.schemas import Product as ProductSchema, ProductCreate
+from app.schemas import Review as ReviewSchema
 from app.db_depends import get_async_db
 from app.models.users import User as UserModel
 from app.auth import get_current_seller
@@ -92,6 +94,40 @@ async def get_product(product_id: int, db: AsyncSession = Depends(get_async_db))
                             detail="Category not found or inactive")
 
     return product
+
+
+@router.get("/{product_id}/reviews", response_model=list[ReviewSchema])
+async def get_product_reviews(product_id: int, db: AsyncSession = Depends(get_async_db)):
+    """
+    Возвращает отзывы о товаре по его ID.
+    """
+    # Проверяем, существует ли активный товар
+    product_result = await db.scalars(
+        select(ProductModel).where(ProductModel.id == product_id, ProductModel.is_active == True)
+    )
+    product = product_result.first()
+    if not product:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found or inactive")
+
+    # Проверяем, существует ли активная категория
+    category_result = await db.scalars(
+        select(CategoryModel).where(CategoryModel.id == product.category_id,
+                                    CategoryModel.is_active == True)
+    )
+    category = category_result.first()
+    if not category:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Category not found or inactive")
+
+    # Проверяем, существует ли отзывы о товаре
+    reviews_result = await db.scalars(
+        select(ReviewModel).where(ReviewModel.product_id == product_id, ReviewModel.is_active == True)
+    )
+    reviews = reviews_result.all()
+    if not reviews:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reviews are not found or inactive")
+
+    return reviews
 
 
 @router.put("/{product_id}", response_model=ProductSchema)

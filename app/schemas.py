@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import Optional
 
@@ -48,6 +50,7 @@ class Product(BaseModel):
     id: int = Field(description="Уникальный идентификатор товара")
     name: str = Field(description="Название товара")
     description: Optional[str] = Field(None, description="Описание товара")
+    rating: float = Field(description="Рейтинг товара")
     price: float = Field(description="Цена товара")
     image_url: Optional[str] = Field(None, description="URL изображения товара")
     stock: int = Field(description="Количество товара на складе")
@@ -68,4 +71,30 @@ class User(BaseModel):
     email: EmailStr
     is_active: bool
     role: str
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReviewCreate(BaseModel):
+    """
+    Модель для создания и обновления обзора.
+    Используется в POST и PUT запросах.
+    """
+    product_id: int = Field(description="ID продукта, о котором оставляется отзыв")
+    comment: Optional[str] = Field(None, description="Комментарий о товара")
+    grade: int = Field(ge=1, le=5, description="Оценка товара (1-5 баллов)")
+
+
+class Review(BaseModel):
+    """
+    Модель для ответа с данными обзора.
+    Используется в GET-запросах.
+    """
+    id: int = Field(description="Уникальный идентификатор отзыва")
+    user_id: int = Field(description="ID пользователя, который оставил отзыв")
+    product_id: int = Field(description="ID продукта, о котором оставляется отзыв")
+    comment: Optional[str] = Field(None, description="Комментарий о товара")
+    comment_date: datetime
+    grade: int = Field(description="Оценка товара")
+    is_active: bool = Field(description="Активность отзыва")
+
     model_config = ConfigDict(from_attributes=True)
